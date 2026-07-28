@@ -4889,3 +4889,18 @@ Describe 'Sync-IntuneDiscoveredAppGroup' {
         }
     }
 }
+
+Describe 'Connect-JustGraphIT parameter sets' {
+    It 'accepts -ClientId in every auth mode; legacy -CertClientId still binds' {
+        InModuleScope JustGraphIT {
+            $cmd = Get-Command Connect-JustGraphIT
+            $ci  = $cmd.Parameters['ClientId']
+            $ci.ParameterSets.Keys | Should -Contain 'Secret'
+            $ci.ParameterSets.Keys | Should -Contain 'Certificate'
+            $ci.ParameterSets.Keys | Should -Contain 'Interactive'
+            $ci.ParameterSets['Secret'].IsMandatory      | Should -BeTrue     # secret auth always names the app
+            $ci.ParameterSets['Certificate'].IsMandatory | Should -BeFalse    # cert auth may use legacy -CertClientId
+            $cmd.Parameters.ContainsKey('CertClientId')  | Should -BeTrue
+        }
+    }
+}
