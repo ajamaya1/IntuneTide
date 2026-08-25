@@ -57,7 +57,16 @@ function global:Invoke-MgGraphRequest {
         $nm = @{ g1 = 'All Pilot Devices'; g2 = 'Finance Users'; g3 = 'HR Department' }[$Matches[1]]
         return [pscustomobject]@{ id = $Matches[1]; displayName = $nm; membershipRule = $null }
     }
-    if ($u -match "groups\?.*displayName eq '") { return page @() }   # name resolver: mock can't filter, so report not-found
+    if ($u -match "groups\?.*displayName eq '([^']+)'") {
+        # Honour the filter: known demo groups resolve, anything else is genuinely
+        # not-found (so create-on-first-run paths like Sync-IntuneDiscoveredAppGroup work).
+        $want = $Matches[1]
+        $known = @(
+            [pscustomobject]@{ id = 'g1'; displayName = 'All Pilot Devices' }
+            [pscustomobject]@{ id = 'g2'; displayName = 'Finance Users' }
+            [pscustomobject]@{ id = 'g3'; displayName = 'HR Department' })
+        return page @($known | Where-Object { $_.displayName -eq $want })
+    }
     if ($u -match '/groups(\?|$|/)') { return page @(
         [pscustomobject]@{ id = 'g1'; displayName = 'All Pilot Devices' }
         [pscustomobject]@{ id = 'g2'; displayName = 'Finance Users' }
