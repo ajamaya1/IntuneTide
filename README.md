@@ -408,6 +408,19 @@ Anything you'd normally open the portal for, from the command line:
 | `Get-/Restore-/Remove-EntraDeletedItem` | Directory recycle bin — restore or purge soft-deleted users / groups / apps |
 | `Get-/Set-EntraUserMfaState` · `Add-EntraUserPhoneMethod` | Per-user MFA state (disabled/enabled/enforced) and admin-registered phone methods |
 
+**Bulk exclusions:** the main-menu *"Assign a group to many (pick which)"* flow does
+includes **and exclusions** — pick the group, pick the area (`Configuration` covers
+settings catalog, device configuration profiles and ADMX templates), choose
+`exclude (block)`, then tick exactly which profiles. Headless equivalent, preview first:
+
+```powershell
+Add-IntuneBulkAssignment -Group "VIP Executives" -Area Configuration -Exclude -WhatIf
+```
+
+`examples/Add-GroupExclusion.ps1` wraps that as a ready-to-schedule script — previews by
+default, writes only with `-Apply`, and drops a CSV receipt for the change ticket.
+Every write is a read-merge-write, so existing includes, filters and intents survive.
+
 **Query → group:** the main-menu *"Build a group from a query"* flow filters a population — devices not synced in *N* days (`Get-IntuneStaleDevice`), **devices carrying a discovered app** (Zscaler, Chrome below a patched build…), users by display-name prefix, or inactive users — then bulk-adds the set to a new or existing group. Same for any `Get-EntraUser -Filter "startswith(displayName,'EX')"` result.
 
 **Discovered app → group, for runbooks:** `Sync-IntuneDiscoveredAppGroup` keeps an Entra
